@@ -1,0 +1,27 @@
+{
+  "plansDirectory": "./.claude/plans",
+  "permissions": {
+    "allow": [
+      "Bash(docker compose*)",
+      "Bash(find:*)",
+      "Bash(gh auth status*)",
+      "Bash(gh issue list*)",
+      "Bash(gh issue view*)",
+      "Bash(gh project field-list*)",
+      "Bash(gh project item-list*)",
+      "Bash(gh project list*)",
+      "Bash(gh project view*)",
+      "Bash(go build*)",
+      "Bash(go mod tidy*)",
+      "Bash(go run*)",
+      "Bash(go test*)",
+      "Bash(go vet*)",
+      "Bash(wc:*)",
+      "Skill(dev-workflow:dev-workflow)",
+      "Skill(github-cli:github-cli)",
+      "Skill(go-patterns:go-patterns)",
+      "Skill(project-management:project-management)",
+      "Skill(skill-creator:skill-creator)"
+    ]
+  }
+}
