@@ -29,7 +29,7 @@ This model delivers three compounding benefits:
 ```
 protocol (L0) ─── format (L1) ─── agent (L2) ─── kernel (L3)
                      │                               │
-                     └──── container (L2.5) ──────────┘
+                     └──── container (L2.5) ─────────┘
 ```
 
 The container package depends on `protocol` (types) and `format` (tool definitions). The kernel optionally depends on the container package for toolkit mode integration. The container package has no Go module dependency on `agent` or `kernel`.
@@ -49,7 +49,7 @@ The agent runs on the host. The container is a headless execution environment �
 │  Agent ──── Kernel   │─────►│  Shell, Files, CLIs      │
 │    │                 │ exec │  (local compute)         │
 │    │                 │ copy │                          │
-│    ├─────────────────│──────│──────────────────────────│──►  Model Provider
+│    └─────────────────│──────│──────────────────────────│──►  Model Provider
 │                      │      │                          │
 └──────────────────────┘      └──────────────────────────┘
 ```
