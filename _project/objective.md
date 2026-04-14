@@ -3,7 +3,7 @@
 **Parent issue:** [#2](https://github.com/tailored-agentic-units/container/issues/2)
 **Phase:** [Phase 1 — Runtime Foundation](./phase.md)
 **Milestone:** Phase 1 - Runtime Foundation
-**Status:** In Progress
+**Status:** Done
 
 ## Scope
 
@@ -36,7 +36,7 @@ Out of scope:
 
 | # | Issue | Title | Depends on | Status |
 |---|-------|-------|-----------|--------|
-| 1 | [#9](https://github.com/tailored-agentic-units/container/issues/9) | Implement image capability manifest types and validation | — | Todo |
+| 1 | [#9](https://github.com/tailored-agentic-units/container/issues/9) | Implement image capability manifest types and validation | — | Done |
 
 ## Architecture decisions
 

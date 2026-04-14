@@ -98,8 +98,7 @@ type ExecResult struct {
 
 // ContainerInfo is the full Runtime.Inspect response for a container. It is a
 // superset of Container's shape and will grow additional fields in later
-// phases (timestamps, exit codes, network settings, and a manifest pointer
-// once Objective 2 lands).
+// phases (timestamps, exit codes, network settings).
 type ContainerInfo struct {
 	// ID is the runtime-assigned unique identifier.
 	ID string
@@ -111,4 +110,10 @@ type ContainerInfo struct {
 	State State
 	// Labels are the key/value labels attached to the container.
 	Labels map[string]string
+	// Manifest is the image capability manifest read from ManifestPath at
+	// inspect time. Nil when the image has no manifest; callers needing a
+	// non-nil value should substitute Fallback. Populating this field costs
+	// a CopyFrom round-trip per Inspect, so callers that need repeat access
+	// should cache the ContainerInfo.
+	Manifest *Manifest
 }

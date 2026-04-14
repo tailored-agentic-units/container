@@ -20,4 +20,15 @@ var (
 	// container's current lifecycle state (for example, starting a container
 	// that is already running).
 	ErrInvalidState = errors.New("container: invalid state")
+
+	// ErrManifestInvalid is returned when a manifest fails to decode, carries
+	// an unknown top-level field, or is missing a required field (name, shell).
+	// Callers distinguish this from a version mismatch via errors.Is.
+	ErrManifestInvalid = errors.New("container: manifest invalid")
+
+	// ErrManifestVersion is returned when a manifest's Version field does not
+	// match ManifestVersion. Callers distinguish this from a decode failure
+	// via errors.Is, letting them surface an actionable "wrong manifest
+	// version" message instead of a generic parse error.
+	ErrManifestVersion = errors.New("container: manifest version mismatch")
 )

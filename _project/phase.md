@@ -11,7 +11,7 @@ Establish the OCI-aligned `Runtime` interface, the image capability manifest con
 | # | Issue | Objective | Status |
 |---|-------|-----------|--------|
 | 1 | [#1](https://github.com/tailored-agentic-units/container/issues/1) | Runtime Interface & Core Types | Done |
-| 2 | [#2](https://github.com/tailored-agentic-units/container/issues/2) | Image Capability Manifest | In Progress |
+| 2 | [#2](https://github.com/tailored-agentic-units/container/issues/2) | Image Capability Manifest | Done |
 | 3 | [#3](https://github.com/tailored-agentic-units/container/issues/3) | Docker Runtime Implementation | Planned |
 
 ## Constraints
@@ -28,4 +28,5 @@ Establish the OCI-aligned `Runtime` interface, the image capability manifest con
 - **Label convention**: `tau.managed=true` and `tau.manifest.version=<v>` reserved for tau-managed containers
 - **Manifest read path**: `Runtime.CopyFrom("/etc/tau/manifest.json")` — runtime-agnostic, validates `CopyFrom` on every start
 - **Manifest version negotiation**: Phase 1 accepts only `version: "1"`; unknown versions return a typed error; missing manifest returns a documented fallback (POSIX shell, no declared tools)
+- **Manifest decode is strict**: `Parse` rejects unknown top-level fields. Runtime- or image-specific configuration that tau does not interpret flows through the top-level `options` slot — mirrors the `Options map[string]any` convention at `tau/protocol/config` and `tau/format`. Strict-now/relax-later preserves more optionality than permissive-now/tighten-later (tightening is breaking; relaxing is not).
 - **`Register()` location**: inline in `docker/docker.go` (matches sibling packages `provider/azure`, `provider/bedrock`). The separate `register.go` shown in the README package layout is a documentation artifact and will be removed from the README in a future update.

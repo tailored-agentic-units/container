@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.0-dev.2.9
+- Add image capability manifest types (`Manifest`, `Tool`, `Service`), constants (`ManifestVersion`, `ManifestPath`), and `Parse`/`Validate`/`Fallback` with strict JSON decoding and an `Options` pass-through slot; add `ErrManifestInvalid`/`ErrManifestVersion` sentinels; add `ContainerInfo.Manifest` field (#9)
+
 ## v0.1.0-dev.1.6
 - Define OCI-aligned `Runtime` interface (8 methods) with per-method context-cancellation godoc and add thread-safe factory registry (`Factory`, `Register`, `Create`, `ListRuntimes`) wrapping `ErrRuntimeNotFound` for unknown names (#6)
 
