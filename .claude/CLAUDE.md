@@ -27,7 +27,8 @@ Root module depends only on `tau/protocol` and `tau/format`. No Go module depend
 container/
 ├── _project/          # Phase and concept docs (README.md, phase.md, objective.md)
 ├── .claude/           # Claude Code configuration, plans, context, skills
-├── runtime.go         # Runtime interface + registry (Phase 1)
+├── runtime.go         # Runtime interface (Phase 1)
+├── registry.go        # Factory type + thread-safe registry (Register/Create/ListRuntimes)
 ├── container.go       # Container type, State, CreateOptions, ExecOptions, ExecResult, ContainerInfo
 ├── manifest.go        # Image capability manifest types + Parse/Validate/Fallback
 ├── errors.go          # Domain error types

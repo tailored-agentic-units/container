@@ -84,6 +84,7 @@ The container image includes a pre-built kernel binary and agent configuration. 
 container/
 ├── container.go        # Container type, lifecycle states, CreateOptions
 ├── runtime.go          # Runtime interface (OCI-aligned)
+├── registry.go         # Factory type, package-level Register/Create/ListRuntimes
 ├── manifest.go         # Image capability manifest types and parsing
 ├── tools.go            # Tool definition generators (format.ToolDefinition)
 ├── shell.go            # Persistent shell session type
