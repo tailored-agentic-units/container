@@ -1,90 +1,75 @@
-# Objective 1 — Runtime Interface & Core Types
+# Objective 2 — Image Capability Manifest
 
-**Parent issue:** [#1](https://github.com/tailored-agentic-units/container/issues/1)
+**Parent issue:** [#2](https://github.com/tailored-agentic-units/container/issues/2)
 **Phase:** [Phase 1 — Runtime Foundation](./phase.md)
 **Milestone:** Phase 1 - Runtime Foundation
-**Status:** Planned
+**Status:** In Progress
 
 ## Scope
 
-Establish the root container module's foundational types and the OCI-aligned `Runtime` interface that all runtime implementations must satisfy. Provides the contract and the registry mechanism that sub-module implementations register against.
+Implement the image capability manifest convention — types, parsing, validation, and fallback — so containers can declare their tools, services, shell, workspace, and environment via `/etc/tau/manifest.json`.
 
 In scope:
-- `Runtime` interface with the 8 methods (Create, Start, Stop, Remove, Exec, CopyTo, CopyFrom, Inspect)
-- `Container`, `State`, `CreateOptions`, `ExecOptions`, `ExecResult`, `ContainerInfo` types
-- Domain error types (`ErrRuntimeNotFound`, `ErrContainerNotFound`, `ErrInvalidState`)
-- Thread-safe registry mirroring `provider/registry.go` (`Factory`, `Register`, `Create`, `ListRuntimes`)
-- Context-cancellation contract documented on each interface method
-- Root-module tests in `tests/`
+- `Manifest` type matching the JSON shape in `_project/README.md` (version, name, description, base, shell, workspace, env, tools, services)
+- `Parse(io.Reader) (*Manifest, error)` and `Validate(*Manifest) error`
+- `ManifestVersion` constant; only `version: "1"` accepted in Phase 1; unknown versions return a typed error
+- `Fallback() *Manifest` returning POSIX-shell defaults for images without a manifest
+- `ContainerInfo.Manifest *Manifest` field (closes the TODO deferred from sub-issue #5)
+- `tests/manifest_test.go` with golden JSON fixtures covering parse, validate, version mismatch, missing fields, malformed JSON, fallback
 
-Out of scope: any runtime implementation (Obj 3), manifest types (Obj 2), Phase 2 work.
+Out of scope:
+- The mechanism for reading the manifest from a running container (Obj 3 — uses `Runtime.CopyFrom`)
+- Tool definition generation from manifest entries (Phase 2)
+- Custom JSON-Schema parameter declarations (open question, deferred)
 
 ## Acceptance Criteria
 
-- Root module compiles with no transitive heavy dependencies (`go mod graph` shows only `protocol`/`format`/stdlib)
-- `Runtime` interface fully documented; each method's godoc states its context-cancellation behavior
-- Registry is concurrency-safe (covered by tests with parallel Register/Create)
-- `errors.Is` works against `ErrRuntimeNotFound` from `Create`
-- Black-box tests in `tests/` pass; `go vet ./...` clean
+- `manifest.go` types match the README JSON shape; godoc on every exported identifier
+- `Parse` returns a wrapped `ErrManifestInvalid` for decode errors and missing required fields
+- `Parse` returns a wrapped `ErrManifestVersion` for version mismatch (verifiable via `errors.Is`)
+- `Fallback()` returns a manifest that passes `Validate` (round-trip safe)
+- `ContainerInfo.Manifest *Manifest` field added with godoc clarifying nil semantics
+- Black-box tests in `tests/manifest_test.go` pass; `go vet ./...` clean
+- `go mod graph` still shows only `protocol`/`format`/stdlib (no new heavy deps)
 
 ## Sub-issues
 
 | # | Issue | Title | Depends on | Status |
 |---|-------|-------|-----------|--------|
-| 1 | [#5](https://github.com/tailored-agentic-units/container/issues/5) | Define container core types and domain errors | — | Done |
-| 2 | [#6](https://github.com/tailored-agentic-units/container/issues/6) | Define Runtime interface and thread-safe registry | #5 | Done |
+| 1 | [#9](https://github.com/tailored-agentic-units/container/issues/9) | Implement image capability manifest types and validation | — | Todo |
 
 ## Architecture decisions
 
-### Factory signature: parameterless
+### Single sub-issue
+
+Scope is tightly coupled (~150 LOC of types + parse/validate/fallback in one file plus one cohesive test file). Splitting types from parse/validate would leave the first PR with no testable behavior. Mirrors the Phase 1 precedent of one PR per atomic, independently shippable unit of work.
+
+### Manifest shape — verbatim from README
+
+Field set matches the JSON example in `_project/README.md`. `Description`, `Base`, `Workspace`, `Env`, `Tools`, `Services` are `omitempty`; only `Version`, `Name`, and `Shell` are required for `Validate` to pass.
+
+### Constants
 
 ```go
-type Factory func() (Runtime, error)
-```
-
-Mirrors `format/registry.go` rather than `provider/registry.go` (which takes `*config.ProviderConfig`). Container has no analogous shared-config package — Docker, containerd, and future runtimes each have distinct config shapes. Sub-modules close over their own config in a wrapper:
-
-```go
-// in docker/docker.go (Obj 3)
-func Register(opts Options) {
-    container.Register("docker", func() (container.Runtime, error) {
-        return newRuntime(opts)
-    })
-}
-```
-
-Keeps the root module free of runtime-specific config types and respects the project convention of explicit `Register()` (no `init()` auto-registration).
-
-### Lifecycle states
-
-```go
-type State string
 const (
-    StateCreated State = "created"
-    StateRunning State = "running"
-    StateExited  State = "exited"
-    StateRemoved State = "removed"
+    ManifestVersion = "1"
+    ManifestPath    = "/etc/tau/manifest.json"
 )
 ```
 
-OCI-aligned. `paused` excluded for Phase 1 — no Pause method in the interface.
+`ManifestPath` is exported so Obj 3's Docker `Inspect` can pass it to `Runtime.CopyFrom` without re-declaring the path constant — keeps the well-known location single-sourced.
 
-### Error types
+### Error sentinels
 
-Sentinel-style with `Err` prefix (per CLAUDE.md):
-- `ErrRuntimeNotFound` — registry returns when an unknown name is requested; `Create` wraps with the requested name via `fmt.Errorf("%w: %s", ErrRuntimeNotFound, name)` so callers can `errors.Is` it
-- `ErrContainerNotFound` — runtime methods return when ID is missing
-- `ErrInvalidState` — operation invalid for current lifecycle state
+Two new error values in `errors.go` (sentinel-style with `Err` prefix per CLAUDE.md):
 
-Sub-modules wrap these with `fmt.Errorf("docker create: %w", err)` (Obj 3 work).
+- `ErrManifestVersion` — version mismatch; lets callers distinguish "wrong version" from "malformed JSON" via `errors.Is`
+- `ErrManifestInvalid` — decode failure or missing required field
 
-### Parameter encapsulation
+### Fallback semantics
 
-`Runtime.Create` takes `CreateOptions`; `Runtime.Exec` takes `ExecOptions`. Other methods take only `(ctx, id, ...)` with at most one extra positional parameter — no struct needed.
+`Fallback()` returns a non-nil `*Manifest` with `Version: "1"`, `Name: "fallback"`, `Shell: "/bin/sh"` and no tools/services. The result must round-trip through `Validate`. Callers (Obj 3 `Inspect`) substitute this when `/etc/tau/manifest.json` is absent in the image.
 
-### Context cancellation contract (per phase decision)
+### `ContainerInfo.Manifest` placement
 
-- `Create`/`Start`/`Remove`/`Inspect` — cancel aborts the in-flight API call
-- `Exec` — cancel kills the exec instance
-- `CopyTo`/`CopyFrom` — cancel aborts the stream
-- `Stop` — honors its own `timeout` independently of `ctx`; `ctx` cancellation only aborts the API call to initiate stop
+The Manifest pointer lives on `ContainerInfo` (the `Inspect` return shape), not on `Container` (the `Create` return shape). Manifest read happens at inspect time via `CopyFrom`, not at create time — populating it on `Container` would require an extra API round-trip during `Create` that callers may not want.

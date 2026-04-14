@@ -10,8 +10,8 @@ Establish the OCI-aligned `Runtime` interface, the image capability manifest con
 
 | # | Issue | Objective | Status |
 |---|-------|-----------|--------|
-| 1 | [#1](https://github.com/tailored-agentic-units/container/issues/1) | Runtime Interface & Core Types | Planned |
-| 2 | [#2](https://github.com/tailored-agentic-units/container/issues/2) | Image Capability Manifest | Planned |
+| 1 | [#1](https://github.com/tailored-agentic-units/container/issues/1) | Runtime Interface & Core Types | Done |
+| 2 | [#2](https://github.com/tailored-agentic-units/container/issues/2) | Image Capability Manifest | In Progress |
 | 3 | [#3](https://github.com/tailored-agentic-units/container/issues/3) | Docker Runtime Implementation | Planned |
 
 ## Constraints
