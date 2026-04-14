@@ -31,7 +31,7 @@ Out of scope: any runtime implementation (Obj 3), manifest types (Obj 2), Phase 
 
 | # | Issue | Title | Depends on | Status |
 |---|-------|-------|-----------|--------|
-| 1 | [#5](https://github.com/tailored-agentic-units/container/issues/5) | Define container core types and domain errors | — | In Progress |
+| 1 | [#5](https://github.com/tailored-agentic-units/container/issues/5) | Define container core types and domain errors | — | Done |
 | 2 | [#6](https://github.com/tailored-agentic-units/container/issues/6) | Define Runtime interface and thread-safe registry | #5 | Planned |
 
 ## Architecture decisions
