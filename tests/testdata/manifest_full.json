@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "name": "tau-go-dev",
+  "description": "Go development environment with common tools",
+  "base": "alpine:3.21",
+  "shell": "/bin/bash",
+  "workspace": "/workspace",
+  "env": {
+    "GOPATH": "/go",
+    "PATH": "/usr/local/go/bin:/go/bin:/usr/local/bin:/usr/bin:/bin"
+  },
+  "tools": {
+    "go":  { "version": "1.26", "description": "Go compiler and toolchain" },
+    "git": { "version": "2.47", "description": "Version control" }
+  },
+  "services": {
+    "postgres": { "description": "PostgreSQL database for structured data" }
+  },
+  "options": {
+    "docker": {
+      "healthcheck": "/bin/sh -c 'exit 0'"
+    },
+    "retries": 3
+  }
+}

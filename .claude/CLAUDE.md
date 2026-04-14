@@ -53,8 +53,9 @@ container/
 ## Container Conventions
 
 - **Labels**: tau-managed containers carry `tau.managed=true` and `tau.manifest.version=<v>`. The `tau.*` namespace is reserved for container metadata.
-- **Manifest location**: `/etc/tau/manifest.json` inside the image. Read via `Runtime.CopyFrom` — runtime-agnostic.
-- **Manifest versioning**: Phase 1 accepts only `version: "1"`. Unknown versions return a typed error. Missing manifest returns a documented POSIX-shell fallback.
+- **Manifest location**: `/etc/tau/manifest.json` inside the image (exported as `ManifestPath`). Read via `Runtime.CopyFrom` — runtime-agnostic.
+- **Manifest versioning**: Phase 1 accepts only `version: "1"` (`ManifestVersion`). Unknown versions return `ErrManifestVersion`. Missing manifest returns the documented POSIX-shell fallback via `Fallback()`.
+- **Manifest decode is strict**: `Parse` calls `DisallowUnknownFields`. Any top-level field outside the declared schema is an `ErrManifestInvalid`. Runtime- or image-specific configuration that tau does not interpret belongs under the top-level `options` slot — the single sanctioned pass-through, mirroring the `Options map[string]any` convention at `tau/protocol/config` and `tau/format`.
 
 ## Testing
 

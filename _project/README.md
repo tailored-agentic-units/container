@@ -154,9 +154,14 @@ Container images declare their capabilities via a well-known file at `/etc/tau/m
   "services": {
     "azure-blob": { "description": "Azure Blob Storage for artifact persistence" },
     "postgres": { "description": "PostgreSQL database for structured data" }
+  },
+  "options": {
+    "docker": { "healthcheck": "/bin/sh -c 'exit 0'" }
   }
 }
 ```
+
+The schema is strict: `container.Parse` rejects any top-level field not defined by the `Manifest` type. Runtime- or image-specific configuration that tau itself does not interpret belongs under `options`, the single sanctioned pass-through slot (mirrors the `Options map[string]any` convention at `tau/protocol/config` and `tau/format`). Anything else — a misspelled field, a field from an older schema version, or a field added by a non-tau tool — surfaces as a decode error so drift is caught at load time rather than silently ignored.
 
 The manifest is parsed at container start and used to:
 - Inform the agent's system prompt about available capabilities
@@ -164,7 +169,7 @@ The manifest is parsed at container start and used to:
 - Declare available external services and their purpose
 - Validate that expected tools are present
 
-Images without a manifest fall back to a base set of assumptions (POSIX shell, standard coreutils).
+Images without a manifest fall back to a base set of assumptions (POSIX shell, standard coreutils). `container.Fallback()` returns a non-nil `*Manifest` that passes `Validate` for this case.
 
 ### Agent Interaction Model
 
