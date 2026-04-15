@@ -33,14 +33,13 @@ container/
 ├── manifest.go        # Image capability manifest types + Parse/Validate/Fallback
 ├── errors.go          # Domain error types
 ├── tests/             # Root module tests (black-box)
-├── docker/            # Docker sub-module
-│   ├── go.mod
-│   ├── docker.go      # Runtime implementation + Register()
-│   └── tests/         # Integration tests (skip gracefully when Docker unavailable)
-└── examples/          # Runnable examples (docker-hello, etc.)
+└── docker/            # Docker sub-module
+    ├── go.mod
+    ├── docker.go      # Runtime implementation + Register()
+    └── tests/         # Integration tests (skip gracefully when Docker unavailable)
 ```
 
-`tools.go` and `shell.go` appear in the README package layout but are Phase 2 work.
+`tools.go` and `shell.go` appear in the README package layout but are Phase 2 work. Runnable examples live in `tailored-agentic-units/examples` (the cross-repo integration module that consumes tagged releases) — there is no `examples/` directory inside this repo.
 
 ## Design Principles
 
