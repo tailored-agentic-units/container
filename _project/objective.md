@@ -40,8 +40,8 @@ Out of scope:
 
 | # | Issue | Title | Depends on | Repo | Status |
 |---|-------|-------|-----------|------|--------|
-| A | [#11](https://github.com/tailored-agentic-units/container/issues/11) | Docker sub-module scaffold and lifecycle methods | — | container | Todo |
-| B | [#12](https://github.com/tailored-agentic-units/container/issues/12) | Docker runtime Exec and file copy methods | #11 | container | Todo |
+| A | [#11](https://github.com/tailored-agentic-units/container/issues/11) | Docker sub-module scaffold and lifecycle methods | — | container | Done |
+| B | [#12](https://github.com/tailored-agentic-units/container/issues/12) | Docker runtime Exec and file copy methods | #11 | container | Done |
 | C | [#13](https://github.com/tailored-agentic-units/container/issues/13) | Docker runtime Inspect and manifest integration | #11, #12 | container | Todo |
 | D | [#14](https://github.com/tailored-agentic-units/container/issues/14) | docker-hello runnable example in examples repo | #11, #12, #13 + v0.1.0 tags | examples (tracked on container) | Todo, blocked on release |
 

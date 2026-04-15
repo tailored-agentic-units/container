@@ -1,13 +1,17 @@
 package docker
 
 import (
+	"archive/tar"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"maps"
+	"path"
 	"time"
 
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 
 	"github.com/tailored-agentic-units/container"
 
@@ -129,21 +133,159 @@ func (r *dockerRuntime) Remove(ctx context.Context, id string, force bool) error
 	return nil
 }
 
+// Exec runs opts.Cmd inside the running container identified by id and
+// returns its result. The container must be in the running state. Stdout
+// and Stderr in the returned ExecResult are populated only when the
+// corresponding AttachStdout/AttachStderr flag is set; unattached streams
+// stay nil. AttachStdin is honored on the create call but receives EOF
+// immediately because Phase 1 ExecOptions does not carry a stdin reader.
+// Cancelling ctx closes the hijacked exec connection, terminating the
+// process inside the container; the returned error wraps ctx.Err.
 func (r *dockerRuntime) Exec(ctx context.Context, id string, opts container.ExecOptions) (*container.ExecResult, error) {
-	return nil, fmt.Errorf("docker exec: not implemented in sub-issue #11")
+	create, err := r.cli.ContainerExecCreate(ctx, id, dc.ExecOptions{
+		Cmd:          opts.Cmd,
+		Env:          buildEnv(opts.Env),
+		WorkingDir:   opts.WorkingDir,
+		AttachStdin:  opts.AttachStdin,
+		AttachStdout: opts.AttachStdout,
+		AttachStderr: opts.AttachStderr,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("docker exec: create: %w", err)
+	}
+
+	hr, err := r.cli.ContainerExecAttach(ctx, create.ID, dc.ExecAttachOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("docker exec: attach: %w", err)
+	}
+	defer hr.Close()
+
+	if opts.AttachStdin {
+		// Phase 1 has no Stdin reader; close the write side so the
+		// process sees EOF on stdin instead of hanging.
+		_ = hr.CloseWrite()
+	}
+
+	var stdout, stderr bytes.Buffer
+	drainErr := make(chan error, 1)
+	go func() {
+		_, err := stdcopy.StdCopy(&stdout, &stderr, hr.Reader)
+		drainErr <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		// Closing the hijacked conn unblocks StdCopy; drain its error
+		// so the goroutine doesn't leak, then surface ctx.Err.
+		hr.Close()
+		<-drainErr
+		return nil, fmt.Errorf("docker exec: %w", ctx.Err())
+	case err := <-drainErr:
+		if err != nil {
+			return nil, fmt.Errorf("docker exec: drain: %w", err)
+		}
+	}
+
+	inspect, err := r.cli.ContainerExecInspect(ctx, create.ID)
+	if err != nil {
+		return nil, fmt.Errorf("docker exec: inspect: %w", err)
+	}
+
+	res := &container.ExecResult{ExitCode: inspect.ExitCode}
+	if opts.AttachStdout {
+		res.Stdout = stdout.Bytes()
+	}
+	if opts.AttachStderr {
+		res.Stderr = stderr.Bytes()
+	}
+	return res, nil
 }
 
+// CopyTo writes content into the container at dst as a single regular file
+// (mode 0644). Parent directories are created as needed via "mkdir -p"
+// executed inside the container, so the container must be running and its
+// image must provide a POSIX shell and mkdir. Cancelling ctx aborts the
+// upload; partial state may remain on the container filesystem.
 func (r *dockerRuntime) CopyTo(ctx context.Context, id string, dst string, content io.Reader) error {
-	return fmt.Errorf("docker copy_to: not implemented in sub-issue #11")
+	parent := path.Dir(dst)
+	base := path.Base(dst)
+
+	if parent != "" && parent != "/" && parent != "." {
+		if _, err := r.Exec(ctx, id, container.ExecOptions{
+			Cmd: []string{"mkdir", "-p", parent},
+		}); err != nil {
+			return fmt.Errorf("docker copy_to: mkdir parent: %w", err)
+		}
+	}
+
+	body, err := io.ReadAll(content)
+	if err != nil {
+		return fmt.Errorf("docker copy_to: read source: %w", err)
+	}
+
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	if err := tw.WriteHeader(&tar.Header{
+		Name: base,
+		Mode: 0o644,
+		Size: int64(len(body)),
+	}); err != nil {
+		return fmt.Errorf("docker copy_to: tar header: %w", err)
+	}
+	if _, err := tw.Write(body); err != nil {
+		return fmt.Errorf("docker copy_to: tar write: %w", err)
+	}
+	if err := tw.Close(); err != nil {
+		return fmt.Errorf("docker copy_to: tar close: %w", err)
+	}
+
+	if err := r.cli.CopyToContainer(ctx, id, parent, &buf, dc.CopyToContainerOptions{}); err != nil {
+		return fmt.Errorf("docker copy_to: %w", err)
+	}
+	return nil
 }
 
+// CopyFrom returns a ReadCloser yielding the raw bytes of the file at src
+// inside the container. The Docker API delivers the file as a tar archive;
+// CopyFrom advances past the header so the caller never sees the tar
+// wrapper. The caller MUST close the returned ReadCloser. Cancelling ctx
+// aborts subsequent Read calls — the next Read returns ctx.Err — but
+// closing is still required to release the underlying connection.
+//
+// When src does not exist in the container, the returned error wraps the
+// Docker not-found error; callers can detect it via cerrdefs.IsNotFound
+// (github.com/containerd/errdefs).
 func (r *dockerRuntime) CopyFrom(ctx context.Context, id string, src string) (io.ReadCloser, error) {
-	return nil, fmt.Errorf("docker copy_from: not implemented in sub-issue #11")
+	rc, _, err := r.cli.CopyFromContainer(ctx, id, src)
+	if err != nil {
+		return nil, fmt.Errorf("docker copy_from: %w", err)
+	}
+	tr := tar.NewReader(rc)
+	if _, err := tr.Next(); err != nil {
+		rc.Close()
+		return nil, fmt.Errorf("docker copy_from: tar next: %w", err)
+	}
+	return &tarFileReader{ctx: ctx, tr: tr, rc: rc}, nil
 }
 
 func (r *dockerRuntime) Inspect(ctx context.Context, id string) (*container.ContainerInfo, error) {
 	return nil, fmt.Errorf("docker inspect: not implemented in sub-issue #11")
 }
+
+type tarFileReader struct {
+	ctx context.Context
+	tr  *tar.Reader
+	rc  io.ReadCloser
+}
+
+func (t *tarFileReader) Read(p []byte) (int, error) {
+	if err := t.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return t.tr.Read(p)
+}
+
+func (t *tarFileReader) Close() error { return t.rc.Close() }
 
 func buildEnv(env map[string]string) []string {
 	out := make([]string, 0, len(env))

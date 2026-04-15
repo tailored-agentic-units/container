@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.0-dev.3.12
+- Implement Docker runtime `Exec` (one-shot command with stdout/stderr capture, exit-code reporting, and ctx-cancellation via hijacked-conn close), `CopyTo` (in-memory tar build with auto `mkdir -p` parent via `Exec`), and `CopyFrom` (tar-stream unwrap via `tarFileReader` adapter that honors ctx on `Read`); document `cerrdefs.IsNotFound` for the missing-file case; `docker/tests/io_test.go` covers stdout/stderr capture, no-attach nil buffers, non-zero exit, ctx cancel, copy round-trip + nested path, and absent-file detection (#12)
+
 ## v0.1.0-dev.3.11
 - Add `container/docker` sub-module: `Register()`, `LabelManaged`/`LabelManifestVersion` constants, lifecycle methods (`Create`/`Start`/`Stop`/`Remove`) with reserved-label merging, timeout-independent stop, and `ErrInvalidState` on `Remove(force=false)` for running containers; Exec/CopyTo/CopyFrom/Inspect stubbed for sub-issues #12 and #13; integration-test-with-skip pattern (`skipIfNoDaemon`, `ensureImage`) over `alpine:3.21` (#11)
 
