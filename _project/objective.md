@@ -42,7 +42,7 @@ Out of scope:
 |---|-------|-------|-----------|------|--------|
 | A | [#11](https://github.com/tailored-agentic-units/container/issues/11) | Docker sub-module scaffold and lifecycle methods | — | container | Done |
 | B | [#12](https://github.com/tailored-agentic-units/container/issues/12) | Docker runtime Exec and file copy methods | #11 | container | Done |
-| C | [#13](https://github.com/tailored-agentic-units/container/issues/13) | Docker runtime Inspect and manifest integration | #11, #12 | container | Todo |
+| C | [#13](https://github.com/tailored-agentic-units/container/issues/13) | Docker runtime Inspect and manifest integration | #11, #12 | container | Done |
 | D | [#14](https://github.com/tailored-agentic-units/container/issues/14) | docker-hello runnable example in examples repo | #11, #12, #13 + v0.1.0 tags | examples (tracked on container) | Todo, blocked on release |
 
 Sub-issue D is tracked on the container repo so Obj #3's roll-up is honest, but the implementing PR opens against `tailored-agentic-units/examples` — that module consumes tagged releases, not workspace refs, which is why D is gated on the Phase 1 release session.
