@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/containerd/errdefs v1.0.0
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/tailored-agentic-units/container v0.0.0-20260415151821-a02bd4bf4a91
+	github.com/tailored-agentic-units/container v0.1.0
 )
 
 require (

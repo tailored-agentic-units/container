@@ -57,8 +57,8 @@ github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-github.com/tailored-agentic-units/container v0.0.0-20260415151821-a02bd4bf4a91 h1:Lef2P9ZmEbbV0fLg4i46n911v+O4CzmAVYI0w8PnVM8=
-github.com/tailored-agentic-units/container v0.0.0-20260415151821-a02bd4bf4a91/go.mod h1:hssPJlI4H8WTj2L0Bm8psyDaS+uKZc4PK6kcbCX1X0M=
+github.com/tailored-agentic-units/container v0.1.0 h1:8pMKdvS7NhxRBpGXQc+d/D5BFSlsvRANfFw6Hb0sbxA=
+github.com/tailored-agentic-units/container v0.1.0/go.mod h1:hssPJlI4H8WTj2L0Bm8psyDaS+uKZc4PK6kcbCX1X0M=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0 h1:CqXxU8VOmDefoh0+ztfGaymYbhdB/tT3zs79QaZTNGY=
