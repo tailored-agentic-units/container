@@ -35,7 +35,8 @@ container/
 ├── tests/             # Root module tests (black-box)
 └── docker/            # Docker sub-module
     ├── go.mod
-    ├── docker.go      # Runtime implementation + Register()
+    ├── doc.go         # Package godoc
+    ├── docker.go      # Runtime implementation + Register() + label constants
     └── tests/         # Integration tests (skip gracefully when Docker unavailable)
 ```
 
