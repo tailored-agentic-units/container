@@ -8,6 +8,7 @@ import (
 	"io"
 	"maps"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -268,8 +269,50 @@ func (r *dockerRuntime) CopyFrom(ctx context.Context, id string, src string) (io
 	return &tarFileReader{ctx: ctx, tr: tr, rc: rc}, nil
 }
 
+// Inspect returns the full ContainerInfo view for the container identified
+// by id. State is normalized via mapState; Docker's "paused" status is
+// rejected explicitly because the Phase 1 state set excludes Paused. The
+// manifest at container.ManifestPath is read via CopyFrom and parsed via
+// container.Parse: a missing file leaves Manifest nil with no error
+// (callers needing a non-nil value substitute container.Fallback);
+// malformed or version-mismatched manifests surface as errors wrapping
+// container.ErrManifestInvalid or container.ErrManifestVersion. Cancelling
+// ctx aborts both the Docker inspect call and the manifest read.
 func (r *dockerRuntime) Inspect(ctx context.Context, id string) (*container.ContainerInfo, error) {
-	return nil, fmt.Errorf("docker inspect: not implemented in sub-issue #11")
+	raw, err := r.cli.ContainerInspect(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("docker inspect: %w", err)
+	}
+
+	state, err := mapState(raw.State)
+	if err != nil {
+		return nil, fmt.Errorf("docker inspect: %w", err)
+	}
+
+	info := &container.ContainerInfo{
+		ID:     raw.ID,
+		Name:   strings.TrimPrefix(raw.Name, "/"),
+		Image:  raw.Config.Image,
+		State:  state,
+		Labels: raw.Config.Labels,
+	}
+
+	rc, err := r.CopyFrom(ctx, id, container.ManifestPath)
+	if err != nil {
+		if cerrdefs.IsNotFound(err) {
+			return info, nil
+		}
+		return nil, fmt.Errorf("docker inspect: manifest read: %w", err)
+	}
+	defer rc.Close()
+
+	manifest, err := container.Parse(rc)
+	if err != nil {
+		return nil, fmt.Errorf("docker inspect: %w", err)
+	}
+	info.Manifest = manifest
+
+	return info, nil
 }
 
 type tarFileReader struct {
@@ -293,6 +336,27 @@ func buildEnv(env map[string]string) []string {
 		out = append(out, k+"="+v)
 	}
 	return out
+}
+
+func mapState(s *dc.State) (container.State, error) {
+	if s == nil {
+		return "", fmt.Errorf("nil container state")
+	}
+
+	switch s.Status {
+	case "created":
+		return container.StateCreated, nil
+	case "running", "restarting":
+		return container.StateRunning, nil
+	case "exited", "dead":
+		return container.StateExited, nil
+	case "removing":
+		return container.StateRemoved, nil
+	case "paused":
+		return "", fmt.Errorf("paused state not supported in Phase 1")
+	default:
+		return "", fmt.Errorf("unknown docker state %q", s.Status)
+	}
 }
 
 func mergeLabels(caller map[string]string) map[string]string {
