@@ -1,32 +1,30 @@
-# Phase 1 — Runtime Foundation
+# Phase 2 — Agent Tool Bridge
 
-**Version target:** v0.1.0
+**Version target:** v0.2.0
 
 ## Scope
 
-Establish the OCI-aligned `Runtime` interface, the image capability manifest convention, and the first runtime implementation (Docker). Together these provide a minimal but complete container-execution foundation that downstream phases (toolkit-mode tool bridge, image management, embedded mode) build on.
+Build the agent-facing surface on top of the Phase 1 runtime foundation: a persistent `Shell` wrapping a new streaming exec primitive, structured built-in tools (file and process), and a manifest-driven tool surface that aggregates everything into the `[]format.ToolDefinition` slice that `agent.Tools(ctx, msgs, tools, opts...)` consumes. The persistent shell is the lynchpin — without it, an agent loses true shell semantics (history, sourced rc files, background jobs) and the "agent operates as a user" property the vision rests on.
 
 ## Objectives
 
-| # | Issue | Objective | Status |
-|---|-------|-----------|--------|
-| 1 | [#1](https://github.com/tailored-agentic-units/container/issues/1) | Runtime Interface & Core Types | Done |
-| 2 | [#2](https://github.com/tailored-agentic-units/container/issues/2) | Image Capability Manifest | Done |
-| 3 | [#3](https://github.com/tailored-agentic-units/container/issues/3) | Docker Runtime Implementation | In Progress |
+| Issue | Objective | Status |
+|-------|-----------|--------|
+| [#18](https://github.com/tailored-agentic-units/container/issues/18) | Persistent Shell Foundation | Todo |
+| [#19](https://github.com/tailored-agentic-units/container/issues/19) | Structured Built-in Tools | Todo |
+| [#20](https://github.com/tailored-agentic-units/container/issues/20) | Manifest-Driven Tool Surface & Agent Integration | Todo |
 
 ## Constraints
 
-- Objectives 1 and 2 are independent and may proceed in parallel
-- Objective 3 depends on both Obj 1 (interface) and Obj 2 (manifest types)
-- Single root `go.mod` tagged `v0.1.0` at phase close; `docker/` sub-module tagged independently as `docker/v0.1.0`
-- Sub-module convention: explicit `Register()` (no `init()`); root never imports sub-modules
-- `tools.go` and `shell.go` from the README package layout are deferred to Phase 2
+- Objectives #18 and #19 are independent and may proceed in parallel
+- Objective #20 depends on both Obj #18 (for `Shell` as the `shell` built-in tool) and Obj #19 (for the top-level `Tool` type and the manifest sub-package)
+- Sub-issue 20C (toolkit-mode example in `tailored-agentic-units/examples`) is gated on the `v0.2.0` and `docker/v0.2.0` release tags
+- Root `go.mod` tagged `v0.2.0` and `docker/` sub-module tagged `docker/v0.2.0` at phase release; phase closeout waits for sub-issue 20C to merge against the published tags before running
 
 ## Cross-cutting decisions
 
-- **Context cancellation**: cancel during `Exec` kills the exec instance; cancel during `CopyTo`/`CopyFrom` aborts the stream; `Stop` honors its own `timeout` independently of `ctx`
-- **Label convention**: `tau.managed=true` and `tau.manifest.version=<v>` reserved for tau-managed containers
-- **Manifest read path**: `Runtime.CopyFrom("/etc/tau/manifest.json")` — runtime-agnostic, validates `CopyFrom` on every start
-- **Manifest version negotiation**: Phase 1 accepts only `version: "1"`; unknown versions return a typed error; missing manifest returns a documented fallback (POSIX shell, no declared tools)
-- **Manifest decode is strict**: `Parse` rejects unknown top-level fields. Runtime- or image-specific configuration that tau does not interpret flows through the top-level `options` slot — mirrors the `Options map[string]any` convention at `tau/protocol/config` and `tau/format`. Strict-now/relax-later preserves more optionality than permissive-now/tighten-later (tightening is breaking; relaxing is not).
-- **`Register()` location**: inline in `docker/docker.go` (matches sibling packages `provider/azure`, `provider/bedrock`). The separate `register.go` shown in the README package layout is a documentation artifact and will be removed from the README in a future update.
+- **Streaming exec primitive**: new `Runtime.ExecStream(ctx, id, opts) (*ExecSession, error)` method (not an `ExecOptions.Stream` flag). `ExecSession` exposes `Stdin io.WriteCloser`, `Stdout io.Reader`, `Stderr io.Reader`, `Wait() (int, error)`, `Close() error`. Cancellation semantics extend the existing context model: cancelling `ctx` aborts the in-flight `ExecStream` API call; `Close` kills the session early; `Wait` returns when the process exits.
+- **Manifest sub-package**: manifest types extracted to a new `github.com/tailored-agentic-units/container/manifest` sub-package (single `go.mod`, no module split). `manifest.Tool` describes CLI metadata declared in the image; `container.Tool` (new in Obj #19) is the runtime execution unit pairing a `format.ToolDefinition` with a handler. Breaking change to the v0.1.0 surface, permissible pre-1.0.
+- **Shell lifecycle**: `Shell.Close()` kills the underlying exec instance and drains streams; the container itself is untouched. A container can host multiple concurrent `Shell` instances, each owning its own `ExecSession`.
+- **Dispatch contract**: the Obj #20 `Dispatch(ctx, c, name, args)` helper is stateless and concurrent-safe. Callers may invoke it from multiple goroutines against the same `*Container` without external synchronization beyond what the underlying tool handlers themselves require.
+- **Release-vs-closeout sequencing**: the `v0.2.0` release tags ship after sub-issues 20A and 20B merge, but Phase 2 closeout is deferred until sub-issue 20C (which depends on the published tags) merges. Mirrors the Phase 1 pattern with `docker-hello`.
