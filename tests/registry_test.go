@@ -28,6 +28,9 @@ func (s *stubRuntime) Remove(ctx context.Context, id string, force bool) error {
 func (s *stubRuntime) Exec(ctx context.Context, id string, opts container.ExecOptions) (*container.ExecResult, error) {
 	return nil, nil
 }
+func (s *stubRuntime) ExecStream(ctx context.Context, id string, opts container.ExecStreamOptions) (*container.ExecSession, error) {
+	return nil, nil
+}
 func (s *stubRuntime) CopyTo(ctx context.Context, id string, dst string, content io.Reader) error {
 	return nil
 }

@@ -49,6 +49,8 @@ type Runtime interface {
 	// Phase 2 shell wrapper rather than repeatedly invoking Exec.
 	Exec(ctx context.Context, id string, opts ExecOptions) (*ExecResult, error)
 
+	ExecStream(ctx context.Context, id string, opts ExecStreamOptions) (*ExecSession, error)
+
 	// CopyTo writes content into the container at dst, creating parent
 	// directories as needed. Cancelling ctx aborts the copy stream; partial
 	// writes may remain on the container filesystem.

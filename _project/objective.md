@@ -11,7 +11,7 @@ Add the streaming exec primitive that `Runtime.Exec` cannot satisfy, and build t
 
 | # | Title | Repo | Depends | Status |
 |---|-------|------|---------|--------|
-| [#22](https://github.com/tailored-agentic-units/container/issues/22) | Runtime.ExecStream primitive and Docker implementation | container | — | Todo |
+| [#22](https://github.com/tailored-agentic-units/container/issues/22) | Runtime.ExecStream primitive and Docker implementation | container | — | Done |
 | [#23](https://github.com/tailored-agentic-units/container/issues/23) | Shell type wrapping ExecSession with PTY prompt sentinel framing | container | #22 | Todo |
 
 ## Architecture decisions
