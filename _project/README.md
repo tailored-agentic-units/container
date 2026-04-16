@@ -109,6 +109,7 @@ type Runtime interface {
     Stop(ctx context.Context, id string, timeout time.Duration) error
     Remove(ctx context.Context, id string, force bool) error
     Exec(ctx context.Context, id string, opts ExecOptions) (*ExecResult, error)
+    ExecStream(ctx context.Context, id string, opts ExecStreamOptions) (*ExecSession, error)
     CopyTo(ctx context.Context, id string, dst string, content io.Reader) error
     CopyFrom(ctx context.Context, id string, src string) (io.ReadCloser, error)
     Inspect(ctx context.Context, id string) (*ContainerInfo, error)

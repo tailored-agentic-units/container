@@ -27,9 +27,10 @@ Root module depends only on `tau/protocol` and `tau/format`. No Go module depend
 container/
 ├── _project/          # Phase and concept docs (README.md, phase.md, objective.md)
 ├── .claude/           # Claude Code configuration, plans, context, skills
-├── runtime.go         # Runtime interface (Phase 1)
+├── runtime.go         # Runtime interface
 ├── registry.go        # Factory type + thread-safe registry (Register/Create/ListRuntimes)
 ├── container.go       # Container type, State, CreateOptions, ExecOptions, ExecResult, ContainerInfo
+├── exec.go            # ExecStreamOptions, ExecSession (Phase 2 streaming exec primitive)
 ├── manifest.go        # Image capability manifest types + Parse/Validate/Fallback
 ├── errors.go          # Domain error types
 ├── tests/             # Root module tests (black-box)
@@ -37,10 +38,11 @@ container/
     ├── go.mod
     ├── doc.go         # Package godoc
     ├── docker.go      # Runtime implementation + Register() + label constants
+    ├── exec.go        # ExecStream implementation + execStream/execStdin/eofReader helpers
     └── tests/         # Integration tests (skip gracefully when Docker unavailable)
 ```
 
-`tools.go` and `shell.go` appear in the README package layout but are Phase 2 work. Runnable examples live in `tailored-agentic-units/examples` (the cross-repo integration module that consumes tagged releases) — there is no `examples/` directory inside this repo.
+`tools.go` and `shell.go` appear in the README package layout but are Phase 2 work. `exec.go` (root) and `docker/exec.go` landed with Phase 2 Obj #18 sub-issue #22. Runnable examples live in `tailored-agentic-units/examples` (the cross-repo integration module that consumes tagged releases) — there is no `examples/` directory inside this repo.
 
 ## Design Principles
 
