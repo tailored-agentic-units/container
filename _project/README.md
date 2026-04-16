@@ -16,11 +16,11 @@ This model delivers three compounding benefits:
 
 ## Phases
 
-| Phase | Focus Area | Version Target |
-|-------|-----------|----------------|
-| Phase 1 - Runtime Foundation | OCI-aligned runtime interface, Docker implementation, container lifecycle, one-shot exec, file copy, image capability manifest | v0.1.0 |
-| Phase 2 - Agent Tool Bridge | Tool-wrapped persistent shell, structured file/process tools, dynamic tool generation from manifest, agent integration surface | v0.2.0 |
-| Phase 3 - Image Management | Image builder from configuration, pre-built image profiles, resource limits, health checks, networking for service integration | v0.3.0 |
+| Phase | Focus Area | Version Target | Status |
+|-------|-----------|----------------|--------|
+| Phase 1 - Runtime Foundation | OCI-aligned runtime interface, Docker implementation, container lifecycle, one-shot exec, file copy, image capability manifest | v0.1.0 | Complete |
+| Phase 2 - Agent Tool Bridge | Tool-wrapped persistent shell, structured file/process tools, dynamic tool generation from manifest, agent integration surface | v0.2.0 | In Progress |
+| Phase 3 - Image Management | Image builder from configuration, pre-built image profiles, resource limits, health checks, networking for service integration | v0.3.0 | Planned |
 
 ## Architecture
 
