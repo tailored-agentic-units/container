@@ -31,6 +31,7 @@ container/
 ├── registry.go        # Factory type + thread-safe registry (Register/Create/ListRuntimes)
 ├── container.go       # Container type, State, CreateOptions, ExecOptions, ExecResult, ContainerInfo
 ├── exec.go            # ExecStreamOptions, ExecSession (Phase 2 streaming exec primitive)
+├── shell.go           # Shell, ShellOptions, NewShell (PTY-attached persistent shell)
 ├── manifest.go        # Image capability manifest types + Parse/Validate/Fallback
 ├── errors.go          # Domain error types
 ├── tests/             # Root module tests (black-box)
@@ -42,7 +43,7 @@ container/
     └── tests/         # Integration tests (skip gracefully when Docker unavailable)
 ```
 
-`tools.go` and `shell.go` appear in the README package layout but are Phase 2 work. `exec.go` (root) and `docker/exec.go` landed with Phase 2 Obj #18 sub-issue #22. Runnable examples live in `tailored-agentic-units/examples` (the cross-repo integration module that consumes tagged releases) — there is no `examples/` directory inside this repo.
+`tools.go` appears in the README package layout but is Phase 2 work. `exec.go` (root) and `docker/exec.go` landed with Phase 2 Obj #18 sub-issue #22; `shell.go` landed with sub-issue #23, completing Obj #18. Runnable examples live in `tailored-agentic-units/examples` (the cross-repo integration module that consumes tagged releases) — there is no `examples/` directory inside this repo.
 
 ## Design Principles
 

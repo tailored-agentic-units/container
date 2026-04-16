@@ -12,7 +12,7 @@ Add the streaming exec primitive that `Runtime.Exec` cannot satisfy, and build t
 | # | Title | Repo | Depends | Status |
 |---|-------|------|---------|--------|
 | [#22](https://github.com/tailored-agentic-units/container/issues/22) | Runtime.ExecStream primitive and Docker implementation | container | — | Done |
-| [#23](https://github.com/tailored-agentic-units/container/issues/23) | Shell type wrapping ExecSession with PTY prompt sentinel framing | container | #22 | Todo |
+| [#23](https://github.com/tailored-agentic-units/container/issues/23) | Shell type wrapping ExecSession with PTY prompt sentinel framing | container | #22 | Done |
 
 ## Architecture decisions
 
@@ -20,7 +20,7 @@ Add the streaming exec primitive that `Runtime.Exec` cannot satisfy, and build t
 
 2. **New `ExecStreamOptions` type.** `Cmd []string`, `Env map[string]string`, `WorkingDir string`, `Tty bool`. Kept distinct from `ExecOptions` because the `AttachStdin/Stdout/Stderr` flags are meaningless when streams are always exposed via the session handle.
 
-3. **Shell framing: PTY + prompt sentinel.** Run `bash -i` under a PTY; inject a UUID sentinel as `PS1`/`PS2`; each `Shell.Run` emits the command followed by `printf '\n<sentinel>\n%s\n' "$?"`; the framing layer reads stdout until the sentinel and parses the trailing exit code. Preserves shell history, sourced rc files, interactive prompts, and the vision's agent-as-user posture.
+3. **Shell framing: PTY + silent-prompt sentinel.** Run `bash -i` under a PTY. During priming, disable terminal echo and output post-processing (`stty -echo -opost`) and clear `PS1`/`PS2` so the interactive prompt emits no bytes between commands. Each `Shell.Run` emits the command followed by `printf '\n<sentinel>\n%s\n' "$?"`; the framing layer reads stdout until the sentinel and parses the trailing exit code. Revised from the original "prompt-as-sentinel" idea during #23 implementation because bash emits a prompt after every command, which would produce double sentinels per Run. Silent prompts + a single printf-emitted sentinel is the cleaner primitive and preserves shell history, sourced rc files, and the vision's agent-as-user posture.
 
 4. **TTY-mode stderr contract.** When `ExecStreamOptions.Tty=true`, the container process's stderr is merged onto stdout by the PTY. `ExecSession.Stderr` yields EOF immediately in TTY mode. Shell uses `Tty=true` and folds everything into its framing layer.
 
@@ -28,7 +28,7 @@ Add the streaming exec primitive that `Runtime.Exec` cannot satisfy, and build t
 
 ## Acceptance criteria (objective-level)
 
-- [ ] Both sub-issues (#22, #23) merged
-- [ ] `Runtime.ExecStream` live on the interface and implemented by the Docker sub-module
-- [ ] `Shell` usable against a real Docker daemon: cwd persists, env persists, multiple instances can coexist on one container
-- [ ] All unit and integration tests pass (`go build ./... && go vet ./... && go test ./... && (cd docker && go test ./...)`)
+- [x] Both sub-issues (#22, #23) merged
+- [x] `Runtime.ExecStream` live on the interface and implemented by the Docker sub-module
+- [x] `Shell` usable against a real Docker daemon: cwd persists, env persists, multiple instances can coexist on one container
+- [x] All unit and integration tests pass (`go build ./... && go vet ./... && go test ./... && (cd docker && go test ./...)`)

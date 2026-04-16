@@ -10,7 +10,7 @@ Build the agent-facing surface on top of the Phase 1 runtime foundation: a persi
 
 | Issue | Objective | Status |
 |-------|-----------|--------|
-| [#18](https://github.com/tailored-agentic-units/container/issues/18) | Persistent Shell Foundation | Todo |
+| [#18](https://github.com/tailored-agentic-units/container/issues/18) | Persistent Shell Foundation | Done |
 | [#19](https://github.com/tailored-agentic-units/container/issues/19) | Structured Built-in Tools | Todo |
 | [#20](https://github.com/tailored-agentic-units/container/issues/20) | Manifest-Driven Tool Surface & Agent Integration | Todo |
 
