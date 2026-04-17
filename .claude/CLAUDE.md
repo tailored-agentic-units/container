@@ -2,6 +2,16 @@
 
 TAU container library — OCI-aligned runtime abstraction for local-first, portable agent execution environments. See `_project/README.md` for vision, architecture, and phase roadmap.
 
+## Status
+
+**Paused. Reference artifact for the `tau/runtime` migration.**
+
+Phase 1 shipped as `v0.1.0`. Phase 2 Objective #18 landed (`ExecStream`, PTY-attached `Shell`); remainder of Phase 2 and all of Phase 3 are **not being pursued here**. The universal kernel-runtime contract work has moved to [`tau/runtime`](https://github.com/tailored-agentic-units/runtime). When the runtime contract is finished and a `native` reference implementation is proven, `tau/runtime/container` + `tau/runtime/container/docker` will be initialized fresh against that contract, using this library's `_project/`, `.claude/context/`, and implementation source as design references. No code is moved. Once that transition completes (Phase 6 of `~/tau/tau-platform/EXECUTION-PLAN.md`), this repo is deleted locally and on GitHub.
+
+**Do not add new code here.** Documentation revisions to reflect evolving understanding are fine. Active container-runtime development resumes in `tau/runtime/container` during Phase 6.
+
+The L2.5 positioning claimed below ("Dependency Position") is superseded — see `_project/README.md` for the revised architecture.
+
 ## Modules
 
 ```

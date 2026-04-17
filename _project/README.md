@@ -1,6 +1,20 @@
 # TAU Container
 
-## Vision
+## Status
+
+**Paused. Reference artifact for the `tau/runtime` migration.**
+
+This library shipped as `v0.1.0` with Phase 1 complete (OCI-aligned `Runtime` interface, Docker implementation, manifest parsing, lifecycle, one-shot exec, file copy). Phase 2 (Objective #18) partially landed: `Runtime.ExecStream` and the PTY-attached `Shell` primitive. The remainder of Phase 2 (tool bridge, dynamic tool generation from manifest) is **no longer being pursued here**.
+
+The library's conceptual ambition — giving agents a discoverable environment to operate within — revealed a broader architectural need the TAU ecosystem didn't have: a universal kernel-runtime contract that spans containers, physical hosts, edge devices, and embedded systems. That contract now lives at [`tau/runtime`](https://github.com/tailored-agentic-units/runtime). Container is one substrate implementation among several, not a distinct architectural layer.
+
+**What happens to this repo:** Phases 1–5 of the TAU platform execution plan do not touch this code. Phase 6 initializes `tau/runtime/container` + `tau/runtime/container/docker` fresh against the finished runtime contract, using this library's `_project/`, `.claude/context/`, and implementation source (`runtime.go`, `exec.go`, `shell.go`, `docker/*`) as *design references* for specific decisions worth preserving (label conventions, manifest pathing, PTY sentinel framing, exec plumbing). No code is moved. Once Phase 6's transition is complete, this repo is deleted locally and on GitHub.
+
+**Do not add new code here.** Document revisions to reflect evolving understanding are fine. Active container-runtime development resumes in `tau/runtime/container` during Phase 6.
+
+See `~/tau/tau-platform/EXECUTION-PLAN.md` for the full sequence and `~/tau/runtime/_project/runtime-contract.md` for the concept doc that will shape the Phase 6 implementation.
+
+## Vision (historical — preserved as reference)
 
 Provide a standardized agent container kit for the TAU platform — enabling agents to operate as users of containerized machines that leverage local compute while integrating with hosted services. By normalizing locally run containers as the primary execution model, agent workloads consume free local hardware for compute-intensive tasks and connect to external services (including AI model providers, whether cloud-hosted or local) only when needed. The same container runs identically on a developer laptop, home server, or cloud infrastructure — making deployment location a configuration decision, not an architectural one.
 
@@ -18,13 +32,13 @@ This model delivers three compounding benefits:
 
 | Phase | Focus Area | Version Target | Status |
 |-------|-----------|----------------|--------|
-| Phase 1 - Runtime Foundation | OCI-aligned runtime interface, Docker implementation, container lifecycle, one-shot exec, file copy, image capability manifest | v0.1.0 | Complete |
-| Phase 2 - Agent Tool Bridge | Tool-wrapped persistent shell, structured file/process tools, dynamic tool generation from manifest, agent integration surface | v0.2.0 | In Progress (Obj #18 Done) |
-| Phase 3 - Image Management | Image builder from configuration, pre-built image profiles, resource limits, health checks, networking for service integration | v0.3.0 | Planned |
+| Phase 1 - Runtime Foundation | OCI-aligned runtime interface, Docker implementation, container lifecycle, one-shot exec, file copy, image capability manifest | v0.1.0 | Complete (shipped) |
+| Phase 2 - Agent Tool Bridge | Tool-wrapped persistent shell, structured file/process tools, dynamic tool generation from manifest, agent integration surface | v0.2.0 | Paused — Obj #18 (`ExecStream`, `Shell`) landed; remaining work moves to `tau/runtime/container` in Phase 6 |
+| Phase 3 - Image Management | Image builder from configuration, pre-built image profiles, resource limits, health checks, networking for service integration | v0.3.0 | Cancelled — superseded by `tau/runtime/container` Phase 6+ work |
 
 ## Architecture
 
-### Dependency Position
+### Dependency Position (historical — superseded)
 
 ```
 protocol (L0) ─── format (L1) ─── agent (L2) ─── kernel (L3)
@@ -33,6 +47,20 @@ protocol (L0) ─── format (L1) ─── agent (L2) ─── kernel (L3)
 ```
 
 The container package depends on `protocol` (types) and `format` (tool definitions). The kernel optionally depends on the container package for toolkit mode integration. The container package has no Go module dependency on `agent` or `kernel`.
+
+**This L2.5 framing is superseded.** The revised architecture does not position "container" as a distinct layer; it is one of several implementations of the universal `Runtime` contract at `tau/runtime`. The dependency graph going forward:
+
+```
+protocol (L0) ─── format (L1) ─── agent (L2) ─── kernel (L3)
+                                                    │
+                                  runtime ──────────┘
+                                   │
+                                   ├── native         (direct execution on physical hosts)
+                                   └── container      (OCI family)
+                                        └── docker    (Docker backend)
+```
+
+The current `tau/container` directory is retained only as a reference artifact through Phase 6.
 
 ### Execution Models
 
